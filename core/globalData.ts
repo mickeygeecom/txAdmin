@@ -14,7 +14,6 @@ import { getHostVars, hostEnvVarSchemas } from './boot/getHostVars';
 import { getZapVars } from './boot/getZapVars';
 import { z, ZodSchema } from 'zod';
 import { fromZodError } from 'zod-validation-error';
-import defaultAds from '../dynamicAds2.json';
 import consts from '@shared/consts';
 const console = consoleFactory();
 
@@ -472,27 +471,6 @@ if (ignoreDeprecatedConfigs) {
 const isPterodactyl = !isWindows && process.env?.TXADMIN_ENABLE === '1';
 const isZapHosting = providerName === 'ZAP-Hosting';
 
-//Quick config to disable ads
-const displayAds = process.env?.TXHOST_TMP_HIDE_ADS !== 'true' || isPterodactyl || isZapHosting;
-const adSchema = z.object({
-    img: z.string(),
-    url: z.string(),
-}).nullable();
-const adsDataSchema = z.object({
-    login: adSchema,
-    main: adSchema,
-});
-let adsData: z.infer<typeof adsDataSchema> = {
-    login: null,
-    main: null,
-};
-if (displayAds) {
-    try {
-        adsData = adsDataSchema.parse(defaultAds);
-    } catch (error) {
-        console.error('Failed to load ads data.', error);
-    }
-}
 
 //FXServer Display Version
 let fxsVersionTag = fxsVersion.toString();
@@ -522,8 +500,6 @@ export const txEnv = Object.freeze({
     isWindows,
     isPterodactyl, //TODO: remove, used only in HB Data
     isZapHosting, //TODO: remove, used only in HB Data and authLogic to disable src check
-    displayAds,
-    adsData,
 
     //Natives
     fxsVersionTag,

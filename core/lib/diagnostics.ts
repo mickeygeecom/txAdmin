@@ -287,10 +287,7 @@ export const getTxAdminData = async () => {
             hostApiToken: hostApiTokenState,
             defaults: defaultFlags,
         },
-        txEnv: {
-            ...txEnv,
-            adsData: undefined,
-        },
+        txEnv,
         monitor: {
             hbFails: {
                 http: stats.monitorStats.healthIssues.http,

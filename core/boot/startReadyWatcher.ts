@@ -41,16 +41,13 @@ const getPublicIp = async () => {
 const getOSMessage = async () => {
     const serverMessage = [
         `To be able to access txAdmin from the internet open port ${txHostConfig.txaPort}`,
-        'on your OS Firewall as well as in the hosting company.',
+        'on your OS Firewall as well as in the hosting provider.',
     ];
     const winWorkstationMessage = [
         '[!] Home-hosting fxserver is not recommended [!]',
         'You need to open the fxserver port (usually 30120) on Windows Firewall',
         'and set up port forwarding on your router so other players can access it.',
     ];
-    if (txEnv.displayAds) {
-        winWorkstationMessage.push('We recommend renting a server from ' + chalk.inverse(' https://zap-hosting.com/txAdmin ') + '.');
-    }
 
     //FIXME: use si.osInfo() instead
     const distro = await getOsDistro();

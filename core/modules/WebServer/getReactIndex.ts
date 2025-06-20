@@ -121,7 +121,6 @@ export default async function getReactIndex(ctx: CtxWithVars | AuthedCtx) {
         hasMasterAccount: txCore.adminStore.hasAdmins(true),
         defaultTheme: tmpDefaultTheme,
         customThemes: tmpCustomThemes.map(({ name, isDark }) => ({ name, isDark })),
-        adsData: txEnv.adsData,
         providerLogo: txHostConfig.providerLogo,
         providerName: txHostConfig.providerName,
         hostConfigSource: txHostConfig.sourceName,
