@@ -15,6 +15,7 @@ import { getZapVars } from './boot/getZapVars';
 import { z, ZodSchema } from 'zod';
 import { fromZodError } from 'zod-validation-error';
 import consts from '@shared/consts';
+import chalk from 'chalk';
 const console = consoleFactory();
 
 
@@ -209,14 +210,17 @@ if (dataPathVar) {
 //      when running localization methods like Date.toLocaleString().
 //      There was also an issue with the slash() lib and with the +exec on FXServer
 const nonASCIIRegex = /[^\x00-\x80]+/;
+const colorNonAscii = (x: string) => chalk.black.bgGreenBright(
+    x.replace(nonASCIIRegex, (m) => chalk.bgRedBright(m))
+);
 if (nonASCIIRegex.test(fxsPath) || nonASCIIRegex.test(dataPath)) {
     fatalError.GlobalData(7, [
         'Due to environmental restrictions, your paths CANNOT contain non-ASCII characters.',
         'Example of non-ASCII characters: çâýå, ρέθ, ñäé, ēļæ, глж, เซิร์, 警告.',
         'Please make sure FXServer is not in a path contaning those characters.',
         `If on windows, we suggest you moving the artifact to "C:/fivemserver/${fxsVersion}/".`,
-        ['FXServer path', fxsPath],
-        ['txData path', dataPath],
+        'FXServer path: ' + colorNonAscii(fxsPath),
+        'txData path: ' + colorNonAscii(dataPath),
     ]);
 }
 
