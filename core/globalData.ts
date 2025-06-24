@@ -474,6 +474,7 @@ if (ignoreDeprecatedConfigs) {
 
 const isPterodactyl = !isWindows && process.env?.TXADMIN_ENABLE === '1';
 const isZapHosting = providerName === 'ZAP-Hosting';
+const setConsoleTitle = !(isPterodactyl || isZapHosting || providerName); //assume not a terminal
 
 
 //FXServer Display Version
@@ -502,8 +503,11 @@ export const txDevEnv = Object.freeze(_txDevEnv);
 export const txEnv = Object.freeze({
     //Calculated
     isWindows,
-    isPterodactyl, //TODO: remove, used only in HB Data
-    isZapHosting, //TODO: remove, used only in HB Data and authLogic to disable src check
+    setConsoleTitle,
+
+    //TODO: remove, used only in diagnostics (HB Data + page)
+    isPterodactyl,
+    isZapHosting, //NOTE: This one is also used in authLogic to disable src check
 
     //Natives
     fxsVersionTag,
