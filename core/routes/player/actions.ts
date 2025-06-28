@@ -1,5 +1,4 @@
 const modulename = 'WebServer:PlayerActions';
-import humanizeDuration, { Unit } from 'humanize-duration';
 import playerResolver from '@lib/player/playerResolver';
 import { GenericApiResp } from '@shared/genericApiTypes';
 import { PlayerClass, ServerPlayer } from '@lib/player/playerClasses';

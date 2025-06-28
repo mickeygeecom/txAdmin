@@ -145,7 +145,7 @@ export class ServerPlayer extends BasePlayer {
     readonly #fxPlayerlist: FxPlayerlist;
     // readonly psid: string; //TODO: calculate player session id (sv mutex, netid, rollover id) here
     readonly netid: number;
-    readonly tsConnected = now();
+    readonly tsConnected: number = now();
     readonly isRegistered: boolean;
     readonly #minuteCronInterval?: ReturnType<typeof setInterval>;
     // #offlineDbDataCacheTimeout?: ReturnType<typeof setTimeout>;
@@ -335,7 +335,7 @@ export class ServerPlayer extends BasePlayer {
 
 
     /**
-     * Marks this player as disconnected, clears dbData (mem optimization) and clears minute cron
+     * Marks this player as disconnected, and clears minute cron
      */
     disconnect() {
         this.isConnected = false;

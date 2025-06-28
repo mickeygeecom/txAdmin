@@ -201,8 +201,9 @@ type QuantileArrayOutput = {
     p75: number;
     p95: number;
 } | {
+    //if less than min size
     enoughData: false;
-}; //if less than min size
+};
 
 type QuantileArraySummary = QuantileArrayOutput & {
     summary: string,

@@ -157,7 +157,7 @@ export default class AdminStore {
 
         //Handling password
         let password_hash, password_temporary;
-        if(password){
+        if (password) {
             password_hash = isPlainTextPassword ? GetPasswordHash(password) : password;
             // password_temporary = false; //undefined will do the same
         } else {
