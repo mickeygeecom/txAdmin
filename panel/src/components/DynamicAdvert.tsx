@@ -46,6 +46,7 @@ export default function DynamicAdvert({ placement }: DynamicAdvertProps) {
     const [advert] = useState(() => pickRandomPartner(placement));
     const isLoginPage = placement === 'login';
     const imgSize = isLoginPage ? '192x64' : '256x80';
+    const linkPrefix = window.txConsts.isWebInterface ? '' : 'nui://monitor/web/public/';
     return (
         <a
             href={advert.link}
@@ -66,7 +67,7 @@ export default function DynamicAdvert({ placement }: DynamicAdvertProps) {
                     'rounded-lg hover:outline outline-2 m-auto hover:saturate-150',
                     isLoginPage ? 'max-w-48 max-h-16' : 'max-w-sidebar max-h-[80px]'
                 )}
-                src={`/img/advert-${advert.name}-${imgSize}.png`}
+                src={`${linkPrefix}/img/advert-${advert.name}-${imgSize}.png`}
             />
         </a>
     );
