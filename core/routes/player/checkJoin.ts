@@ -3,7 +3,7 @@ import cleanPlayerName from '@shared/cleanPlayerName';
 import { GenericApiErrorResp } from '@shared/genericApiTypes';
 import { DatabaseActionBanType, DatabaseActionType, DatabaseWhitelistApprovalsType } from '@modules/Database/databaseTypes';
 import { anyUndefined, now } from '@lib/misc';
-import { filterPlayerHwids, parsePlayerIds, shortenId, summarizeIdsArray } from '@lib/player/idUtils';
+import { filterPlayerHwids, parsePlayerIds, summarizeIdsArray } from '@lib/player/idUtils';
 import type { PlayerIdsObjectType } from "@shared/otherTypes";
 import xssInstancer from '@lib/xss';
 import playerResolver from '@lib/player/playerResolver';

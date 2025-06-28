@@ -181,8 +181,8 @@ export default function PlayerModal() {
                         ) : (
                             <>
                                 {selectedTab === 'Info' && <PlayerInfoTab
-                                    playerRef={playerRef!}
                                     player={modalData.player}
+                                    playerRef={playerRef!}
                                     serverTime={modalData.serverTime}
                                     tsFetch={tsFetch}
                                     setSelectedTab={setSelectedTab}
@@ -195,6 +195,7 @@ export default function PlayerModal() {
                                 />}
                                 {selectedTab === 'IDs' && <PlayerIdsTab
                                     player={modalData.player}
+                                    playerRef={playerRef!}
                                     refreshModalData={refreshModalData}
                                 />}
                                 {selectedTab === 'Ban' && <PlayerBanTab

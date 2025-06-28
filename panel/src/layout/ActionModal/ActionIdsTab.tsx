@@ -7,12 +7,12 @@ export default function ActionIdsTab({ action }: { action: DatabaseActionType })
         <MultiIdsList
             type='id'
             src='action'
-            list={action.ids}
+            idsOffline={action.ids}
         />
         <MultiIdsList
             type='hwid'
             src='action'
-            list={('hwids' in action && action.hwids) ? action.hwids : []}
+            idsOffline={('hwids' in action && action.hwids) ? action.hwids : []}
         />
     </div>;
 }

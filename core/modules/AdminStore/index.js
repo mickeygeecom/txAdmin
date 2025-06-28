@@ -61,6 +61,7 @@ export default class AdminStore {
             'server.cfg.editor': 'Read/Write server.cfg', //FIXME: rename to server.cfg_editor
             'txadmin.log.view': 'View System Logs', //FIXME: rename to system.log.view
             'server.log.view': 'View Server Logs',
+            'players.remove_data': 'Remove Player Data',
 
             'menu.vehicle': 'Spawn / Fix Vehicles',
             'menu.clear_area': 'Reset world area',
@@ -626,11 +627,13 @@ export default class AdminStore {
             }, []);
 
             //Finding online admins
-            const playerList = txCore.fxPlayerlist.getPlayerList();
-            const onlineIDs = playerList.filter((p) => {
-                return p.ids.some((i) => adminIDs.includes(i));
-            }).map((p) => p.netid);
-
+            const onlineIDs = [];
+            const { idsFound } = txCore.fxPlayerlist.getAssociatedOnlineNetIds(adminIDs);
+            for (const netid of idsFound.map(x => x[1])) {
+                if (!onlineIDs.includes(netid)) {
+                    onlineIDs.push(netid);
+                }
+            }
             txCore.fxRunner.sendEvent('adminsUpdated', onlineIDs);
         } catch (error) {
             console.verbose.error('Failed to refreshOnlineAdmins() with error:');
