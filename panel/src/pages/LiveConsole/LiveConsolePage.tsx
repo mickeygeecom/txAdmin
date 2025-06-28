@@ -354,6 +354,8 @@ export default function LiveConsolePage() {
         if (!isConnected || !pageSocket.current) return;
         if (cmd === 'cls' || cmd === 'clear') {
             clearConsole();
+        } if (cmd === '\n') {
+            term.write(`\n`);
         } else {
             pageSocket.current.emit('consoleCommand', cmd);
         }

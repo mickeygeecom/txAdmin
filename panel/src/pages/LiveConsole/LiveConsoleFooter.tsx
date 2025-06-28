@@ -95,6 +95,8 @@ export default function LiveConsoleFooter(props: LiveConsoleFooterProps) {
         if (currentInput) {
             appendHistory(currentInput);
             props.consoleWrite(currentInput);
+        } else {
+            props.consoleWrite('\n');
         }
     };
 
