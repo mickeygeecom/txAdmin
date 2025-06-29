@@ -22,7 +22,7 @@ export default function PlayerIdsTab({ playerRef, player, refreshModalData }: Pl
         path: `/player/removeIds`,
     });
 
-    const removePlayerIds = (ids: string[]) => {
+    const removePlayerIds = (ids: string[], onError: () => void) => {
         if (!ids.length) throw new Error(`No IDs selected to remove.`);
         removePlayerIdsApi({
             queryParams: playerRef,
@@ -31,9 +31,12 @@ export default function PlayerIdsTab({ playerRef, player, refreshModalData }: Pl
             genericHandler: {
                 successMsg: 'Player IDs/HWIDs deleted!',
             },
+            error: (error, toastId) => onError(),
             success: (data, toastId) => {
                 if ('success' in data) {
                     refreshModalData();
+                } else {
+                    onError();
                 }
             },
         });

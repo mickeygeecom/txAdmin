@@ -58,6 +58,7 @@ type IdLineProps = {
     isRemoving: boolean;
     isMarkedForRemoval?: boolean;
     toggleMarkRemoval?: () => void;
+    disableButtons: boolean;
 }
 
 function IdLine({
@@ -71,6 +72,7 @@ function IdLine({
     isRemoving,
     isMarkedForRemoval,
     toggleMarkRemoval,
+    disableButtons,
 }: IdLineProps) {
     const canBeRemoved = !id.startsWith('license:') && !isOnline; // Only allow removal of old IDs
     const isBold = (isComparing && isMatch)
@@ -94,6 +96,7 @@ function IdLine({
                     className="absolute right-0 top-0 h-full flex items-center bg-background hover:bg-background group/removal"
                     onClick={toggleMarkRemoval}
                     title={isMarkedForRemoval ? 'Undo mark for deletion' : 'Mark for deletion'}
+                    disabled={disableButtons}
                 >
                     {isMarkedForRemoval ? (
                         <UndoIcon className="h-4 opacity-75 group-hover:opacity-100 group-hover/removal:text-warning" />
@@ -106,6 +109,7 @@ function IdLine({
                     className="absolute right-0 top-0 h-full flex items-center opacity-0 group-hover/line:opacity-100 bg-background hover:bg-background group/copy transition-opacity"
                     onClick={onCopy}
                     title='Copy to clipboard'
+                    disabled={disableButtons}
                 >
                     <CopyIcon className="h-4 opacity-75 group-hover/copy:opacity-100 group-hover/copy:text-primary" />
                 </button>
@@ -117,7 +121,7 @@ function IdLine({
 
 //MARK: IdListControls
 type IdListControlsProps = {
-    onRemoveIds?: (ids: string[]) => void;
+    hasRemoveIds: boolean;
     canRemoveIds?: boolean;
     handleStartMarkRemoval: () => void;
     handleCompareIds: () => void;
@@ -126,7 +130,7 @@ type IdListControlsProps = {
 }
 
 function IdListControls({
-    onRemoveIds,
+    hasRemoveIds,
     canRemoveIds,
     handleStartMarkRemoval,
     handleCompareIds,
@@ -135,7 +139,7 @@ function IdListControls({
 }: IdListControlsProps) {
     return (
         <>
-            {onRemoveIds && (
+            {hasRemoveIds && (
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <button
@@ -154,7 +158,7 @@ function IdListControls({
                         ) : (
                             <p>
                                 You do not have the permission <br />
-                                required to remove {typeStr}s.
+                                required to remove {typeStr}s
                             </p>
                         )}
                     </TooltipContent>
@@ -167,7 +171,7 @@ function IdListControls({
                     </button>
                 </TooltipTrigger>
                 <TooltipContent>
-                    Compare {typeStr}s.
+                    Compare {typeStr}s
                 </TooltipContent>
             </Tooltip>
             <Tooltip>
@@ -177,7 +181,7 @@ function IdListControls({
                     </button>
                 </TooltipTrigger>
                 <TooltipContent>
-                    Copy {typeStr}s to clipboard.
+                    Copy all {typeStr}s
                 </TooltipContent>
             </Tooltip>
         </>
@@ -188,26 +192,37 @@ function IdListControls({
 //MARK: Main Component
 type ActionFeedback = {
     msg: string;
-    success: boolean;
+    type: 'green' | 'yellow' | 'red';
 }
 
-type MultiIdsList = {
+type MultiIdsListProps = {
     idsOnline?: string[];
     idsOffline: string[];
     type: 'hwid' | 'id';
     src: 'player' | 'action';
     isHwids?: boolean;
-    onRemoveIds?: (ids: string[]) => void;
+    onRemoveIds?: (
+        ids: string[],
+        onError: () => void,
+    ) => void;
     canRemoveIds?: boolean;
 }
 
-export default function MultiIdsList({ idsOnline, idsOffline, type, src, onRemoveIds, canRemoveIds }: MultiIdsList) {
+export default function MultiIdsList({ idsOnline, idsOffline, type, src, onRemoveIds, canRemoveIds }: MultiIdsListProps) {
     const openPromptDialog = useOpenPromptDialog();
     const divRef = useRef<HTMLDivElement>(null);
     const msgRef = useRef<any>(null);
     const [compareMatches, setCompareMatches] = useState<string[] | null>(null);
     const [markedForRemoval, setMarkedForRemoval] = useState<string[] | null>(null);
     const [actionFeedback, setActionFeedback] = useState<ActionFeedback | false>(false);
+    const [isCommittingDeletions, setIsCommittingDeletions] = useState(false);
+
+    const handleClearState = () => {
+        setCompareMatches(null);
+        setMarkedForRemoval(null);
+        setActionFeedback(false);
+        setIsCommittingDeletions(false);
+    }
 
     const hasAnyIdAvailable = idsOnline?.length || idsOffline.length;
     const hasAnyIdOnline = Array.isArray(idsOnline) && !!idsOnline.length;
@@ -280,7 +295,19 @@ export default function MultiIdsList({ idsOnline, idsOffline, type, src, onRemov
 
     const handleCommitRemoval = () => {
         if (!onRemoveIds || !isInRemovalMode || !markedForRemoval?.length) return;
-        onRemoveIds(markedForRemoval);
+        setActionFeedback({
+            msg: 'saving...',
+            type: 'yellow',
+        });
+        setIsCommittingDeletions(true);
+        onRemoveIds(markedForRemoval, () => {
+            //We don't need to handle success cases because the modal refreshes
+            setIsCommittingDeletions(false);
+            setActionFeedback({
+                msg: 'Error:(',
+                type: 'red',
+            });
+        });
     }
 
     const handleCompareIds = () => {
@@ -305,19 +332,13 @@ export default function MultiIdsList({ idsOnline, idsOffline, type, src, onRemov
         });
     };
 
-    const handleClearState = () => {
-        setCompareMatches(null);
-        setMarkedForRemoval(null);
-        setActionFeedback(false);
-    }
-
     const handleCopyString = (strToCopy: string) => {
         if (!divRef.current) throw new Error(`divRef.current undefined`);
         copyToClipboard(strToCopy, divRef.current).then((res) => {
             if (res !== false) {
                 setActionFeedback({
                     msg: 'Copied!',
-                    success: true,
+                    type: 'green',
                 });
             } else {
                 txToast.error('Failed to copy to clipboard :(');
@@ -329,7 +350,7 @@ export default function MultiIdsList({ idsOnline, idsOffline, type, src, onRemov
             });
             setActionFeedback({
                 msg: 'Error :(',
-                success: false,
+                type: 'red',
             });
         });
     }
@@ -366,9 +387,9 @@ export default function MultiIdsList({ idsOnline, idsOffline, type, src, onRemov
                         ref={msgRef}
                         className={cn(
                             "w-full text-right text-sm select-none pointer-events-none",
-                            actionFeedback.success
-                                ? "text-success-inline"
-                                : "text-destructive-inline"
+                            actionFeedback.type === 'green' && "text-success-inline",
+                            actionFeedback.type === 'yellow' && "text-warning-inline",
+                            actionFeedback.type === 'red' && "text-destructive-inline",
                         )}
                     >
                         {actionFeedback.msg}
@@ -395,7 +416,7 @@ export default function MultiIdsList({ idsOnline, idsOffline, type, src, onRemov
                     </span>
                 ) : (
                     <IdListControls
-                        onRemoveIds={onRemoveIds}
+                        hasRemoveIds={!!onRemoveIds}
                         canRemoveIds={canRemoveIds}
                         handleStartMarkRemoval={handleStartMarkRemoval}
                         handleCompareIds={handleCompareIds}
@@ -421,6 +442,7 @@ export default function MultiIdsList({ idsOnline, idsOffline, type, src, onRemov
                         isRemoving={isInRemovalMode}
                         isMarkedForRemoval={isMarkedForRemoval(id)}
                         toggleMarkRemoval={() => toggleMarkRemoval(id)}
+                        disableButtons={isCommittingDeletions}
                     />
                 ))}
                 {isInRemovalMode && (
@@ -437,12 +459,14 @@ export default function MultiIdsList({ idsOnline, idsOffline, type, src, onRemov
                         <button
                             className={cn(
                                 'px-1 border border-transparent hover:bg-background hover:border-background rounded-lg',
-                                markedForRemoval.length ? 'block' : 'hidden'
+                                markedForRemoval.length ? 'block' : 'hidden',
+                                isCommittingDeletions && 'opacity-50 cursor-progress'
                             )}
                             onClick={handleCommitRemoval}
                             title={`Confirm removal of marked ${typeStr}s.`}
+                            disabled={isCommittingDeletions}
                         >
-                            Confirm & Delete
+                            {isCommittingDeletions ? 'saving...' : 'Confirm & Delete'}
                         </button>
                     </div>
                 )}
