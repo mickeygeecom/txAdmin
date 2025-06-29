@@ -1,11 +1,11 @@
 import { PlayerModalPlayerData } from "@shared/playerApiTypes";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import MultiIdsList from "@/components/MultiIdsList";
 import { useMemo } from "react";
 import type { PlayerModalRefType } from "@/hooks/playerModal";
 import { useAdminPerms } from "@/hooks/auth";
 import { useBackendApi } from "@/hooks/fetch";
 import type { GenericApiOkResp } from "@shared/genericApiTypes";
+import { ModalTabInner } from "@/components/modal-tabs";
 
 
 type PlayerIdsTabProps = {
@@ -42,8 +42,8 @@ export default function PlayerIdsTab({ playerRef, player, refreshModalData }: Pl
         });
     }
 
-    return <TooltipProvider>
-        <div className="flex flex-col gap-4 p-1">
+    return (
+        <ModalTabInner className="flex flex-col gap-4">
             <MultiIdsList
                 type='id'
                 src='player'
@@ -60,6 +60,6 @@ export default function PlayerIdsTab({ playerRef, player, refreshModalData }: Pl
                 onRemoveIds={removePlayerIds}
                 canRemoveIds={hasRemovePerms}
             />
-        </div>
-    </TooltipProvider>;
+        </ModalTabInner>
+    );
 }

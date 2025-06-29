@@ -9,7 +9,7 @@ import { useAtomValue } from 'jotai';
 import { txConfigStateAtom } from '@/hooks/status';
 import { useLocation } from 'wouter';
 import { TxConfigState } from '@shared/enums';
-import ModalCentralMessage from '@/components/ModalCentralMessage';
+import { ModalTabMessage } from '@/components/modal-tabs';
 import GenericSpinner from '@/components/GenericSpinner';
 
 
@@ -81,9 +81,9 @@ export default function DashboardPage() {
         return null;
     } else if (txConfigState !== TxConfigState.Ready) {
         return <div className='size-full'>
-            <ModalCentralMessage>
+            <ModalTabMessage>
             <GenericSpinner msg={`Unknown Config State: ${String(txConfigState)}`} />
-        </ModalCentralMessage>
+            </ModalTabMessage>
         </div>;
     } else {
         return <DashboardPageInner />;
