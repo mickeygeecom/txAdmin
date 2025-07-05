@@ -38,7 +38,7 @@ export function ModalTabWrapper({ children, className, ...props }: StyledDivProp
 export function ModalTabInner({ children, className, ...props }: StyledDivProps) {
     //NOTE: The padding is the minimum required for the input outlines not to get cropped
     return (
-        <div className={cn('px-1 max-md:pb-1', className)} {...props}>
+        <div className={cn('px-1 pb-1', className)} {...props}>
             {children}
         </div>
     );

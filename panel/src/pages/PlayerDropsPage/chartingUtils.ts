@@ -2,7 +2,6 @@ import { PlayerDropsSummaryHour } from "@shared/otherTypes";
 import { playerDropExpectedCategories, playerDropUnexpectedCategories } from "@/lib/playerDropCategories";
 import { TimelineDropsDatum } from "./drawDropsTimeline";
 import { DisplayLodType } from "./PlayerDropsPage";
-import { cloneDeep } from "lodash-es";
 
 export type PlayerDropsCategoryCount = [category: string, count: number];
 
@@ -42,7 +41,7 @@ export const processDropsSummary = (apiData: PlayerDropsSummaryHour[], displayLo
             } else if (hourDayOfMonth !== currDayOfMonth) {
                 binnedData.push(currDayData);
                 currDayOfMonth = hourDayOfMonth;
-                currDayData = cloneDeep(hourData);
+                currDayData = structuredClone(hourData);
                 continue;
             }
 

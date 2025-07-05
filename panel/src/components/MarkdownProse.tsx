@@ -1,5 +1,5 @@
 import { cn, stripIndent } from '@/lib/utils';
-import Markdown, { Components } from 'react-markdown';
+import Markdown, { type Components } from 'react-markdown';
 import InlineCode from './InlineCode';
 import TxAnchor from './TxAnchor';
 
