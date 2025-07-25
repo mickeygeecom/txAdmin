@@ -21,7 +21,7 @@ const pickRandomPartner = (placement: AdPlacement): HostingPartner => {
     let partnerChosen = partners[Math.floor(Math.random() * partners.length)];
     let isCustomer = false;
     if (window.txConsts.providerName) {
-        const providerKey = window.txConsts.providerName.toLowerCase().replace(/[^a-z0-9]+/g, '')
+        const providerKey = window.txConsts.providerName.toLowerCase().replace(/[^a-z0-9]+/g, '');
         const partnerFound = partners.find(partner => partner.name === providerKey);
         if (partnerFound) {
             partnerChosen = partnerFound;

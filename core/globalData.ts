@@ -482,8 +482,25 @@ let fxsVersionTag = fxsVersion.toString();
 if (fxsVerParsed.branch && fxsVerParsed.branch !== 'master') {
     fxsVersionTag += '-ft';
 }
-if (isZapHosting) {
-    fxsVersionTag += '/ZAP';
+
+let providerTag = '';
+const partnerPrefixes = {
+    'gportal': 'GPor',
+    'nitrado': 'Nitr',
+    'nodecraft': 'NoCr',
+    'shockbyte': 'ShBy',
+    'xrealm': 'XRea',
+    'zaphosting': 'ZapH',
+} as { [key: string]: string };
+if (providerName) {
+    const cleanName = providerName.toLowerCase().replace(/[^a-z0-9]+/g, '');
+    if (cleanName in partnerPrefixes) {
+        providerTag = partnerPrefixes[cleanName];
+    }
+}
+
+if (providerTag) {
+    fxsVersionTag += `/${providerTag}`;
 } else if (isPterodactyl) {
     fxsVersionTag += '/Ptero';
 } else if (isWindows && fxsVerParsed.platform === 'windows') {
