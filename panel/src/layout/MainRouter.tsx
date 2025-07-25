@@ -4,6 +4,7 @@ import { PageErrorFallback } from "@/components/ErrorFallback";
 import { useAtomValue, useSetAtom } from "jotai";
 import { contentRefreshKeyAtom, pageErrorStatusAtom, useSetPageTitle } from "@/hooks/pages";
 import { navigate as setLocation } from 'wouter/use-browser-location';
+import { useAdminPerms } from "@/hooks/auth";
 
 import Iframe from "@/pages/Iframe";
 import NotFound from "@/pages/NotFound";
@@ -17,8 +18,8 @@ import AddLegacyBanPage from "@/pages/AddLegacyBanPage";
 import DashboardPage from "@/pages/Dashboard/DashboardPage";
 import PlayerDropsPage from "@/pages/PlayerDropsPage/PlayerDropsPage";
 import SettingsPage from "@/pages/Settings/SettingsPage";
-import { useAdminPerms } from "@/hooks/auth";
 import UnauthorizedPage from "@/pages/UnauthorizedPage";
+import DiagnosticsPage from "@/pages/Diagnostics/DiagnosticsPage";
 
 
 type RouteType = {
@@ -70,7 +71,7 @@ const allRoutes: RouteType[] = [
     {
         path: '/system/diagnostics',
         title: 'Diagnostics',
-        Page: <Iframe legacyUrl="diagnostics" />
+        Page: <DiagnosticsPage />
     },
     {
         path: '/system/console-log',

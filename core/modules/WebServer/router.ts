@@ -30,7 +30,6 @@ export default () => {
     router.get('/legacy/adminManager', webAuthMw, routes.adminManager_page);
     router.get('/legacy/advanced', webAuthMw, routes.advanced_page);
     router.get('/legacy/cfgEditor', webAuthMw, routes.cfgEditor_page);
-    router.get('/legacy/diagnostics', webAuthMw, routes.diagnostics_page);
     router.get('/legacy/masterActions', webAuthMw, routes.masterActions_page);
     router.get('/legacy/resources', webAuthMw, routes.resources);
     router.get('/legacy/serverLog', webAuthMw, routes.serverLog);
@@ -82,6 +81,7 @@ export default () => {
     router.post('/intercom/:scope', intercomAuthMw, routes.intercom);
 
     //Diagnostic routes
+    router.get('/diagnostics/getDiagnostics', apiAuthMw, routes.diagnostics_getDiagnostics);
     router.post('/diagnostics/sendReport', apiAuthMw, routes.diagnostics_sendReport);
     router.post('/advanced', apiAuthMw, routes.advanced_actions);
 

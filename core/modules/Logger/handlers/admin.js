@@ -28,7 +28,10 @@ export default class AdminLogger extends LoggerBase {
      * Returns a string with short usage stats
      */
     getUsageStats() {
-        return `Writes: ${this.writeCounter}, lrErrors: ${this.lrErrors}`;
+        return {
+            writes: this.writeCounter,
+            lrErrors: this.lrErrors,
+        };
     }
 
     /**

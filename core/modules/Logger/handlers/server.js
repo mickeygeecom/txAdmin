@@ -94,7 +94,12 @@ export default class ServerLogger extends LoggerBase {
             ? `${bytes(bufferJsonSizeRes.bytesPerElement)}/e`
             : 'LowCount';
 
-        return `Buffer: ${this.recentBuffer.length},  lrErrors: ${this.lrErrors}, mem: ${bufferJsonSizeStr}, rate: ${eventsPerMinStr}`;
+        return {
+            buffer: this.recentBuffer.length,
+            lrErrors: this.lrErrors,
+            mem: bufferJsonSizeStr,
+            rate: eventsPerMinStr,
+        };
     }
 
 
