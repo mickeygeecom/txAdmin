@@ -27,7 +27,7 @@
  */
 export enum LocalStorageKey {
     // Prefixes-only
-    // ImgCache = 'txa:imgCache:', //NOTE: not yet used
+    ImgCache = 'txa:imgCache:',
     NewFeatureSeenTs = 'txa:newFeat:seenTs:',
 
     // static

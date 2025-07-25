@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { AvatarFallback, AvatarImage, Avatar as ShadcnAvatar } from "./ui/avatar";
+import { useImageCache } from "@/hooks/useImageCache";
 
 
 type ServerIconProps = {
@@ -24,15 +25,19 @@ export function ServerIcon({ serverName, gameName, iconFilename, className, extr
     if (iconFilename && /^icon-([a-f0-9]{16})\.png$/.test(iconFilename)) {
         iconUrl = `/.runtime/${iconFilename}`;
     }
+
+    // Cache both the main icon and fallback
+    const cachedIcon = useImageCache(iconUrl);
+    const cachedFallback = useImageCache(fallbackUrl);
     
     return (
         <ShadcnAvatar className={cn(className, extraClasses)}>
             <AvatarImage
-                src={iconUrl}
+                src={cachedIcon.src}
                 alt={serverName}
             />
             <AvatarFallback asChild>
-                <img src={fallbackUrl} className="aspect-square rounded-md h-full w-full" />
+                <img src={cachedFallback.src} className="aspect-square rounded-md h-full w-full" />
             </AvatarFallback>
         </ShadcnAvatar>
     );

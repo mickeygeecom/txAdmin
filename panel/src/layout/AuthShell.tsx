@@ -9,6 +9,7 @@ import { useThemedImage } from "@/hooks/theme";
 import { handleExternalLinkClick } from "@/lib/navigation";
 import { AuthError } from "@/pages/auth/errors";
 import DynamicAdvert from "@/components/DynamicAdvert";
+import { useImageCache } from "@/hooks/useImageCache";
 
 function AuthContentWrapper({ children }: { children: React.ReactNode }) {
     return (
@@ -21,6 +22,8 @@ function AuthContentWrapper({ children }: { children: React.ReactNode }) {
 
 export default function AuthShell() {
     const customLogoUrl = useThemedImage(window.txConsts.providerLogo);
+    const cachedDiscordImage = useImageCache("img/discord.png");
+    
     return (
         <div className="min-h-screen flex items-center justify-center pattern-dots">
             <div className="w-full min-w-[20rem] xs:max-w-[25rem] my-4 xs:mx-4">
@@ -81,7 +84,7 @@ export default function AuthShell() {
                         dark:bg-gradient-to-t dark:from-[#8567EC] dark:to-[#BD5CBF]' />
                         <img
                             className='rounded-lg max-w-48 max-h-16 m-auto'
-                            src="img/discord.png"
+                            src={cachedDiscordImage.src}
                         />
                     </a>
                 </div>

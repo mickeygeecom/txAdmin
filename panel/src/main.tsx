@@ -15,7 +15,14 @@ import { StrictMode, useEffect } from 'react';
 import { isMobile } from 'is-mobile';
 import { useAtomValue } from 'jotai';
 import { pageTitleWatcher } from './hooks/pages.ts';
+import { migrateStorageKeys } from './lib/localStorage.ts';
 
+
+//Migrate old storage keys to the new ones
+//FIXME:REMOVE:NEXT:UPDATE
+if(window.txConsts.isWebInterface){
+    migrateStorageKeys();
+}
 
 //If inside NUI, silence console.* calls to prevent confusion.
 if (!window.txConsts.isWebInterface) {
