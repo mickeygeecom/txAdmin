@@ -1,16 +1,16 @@
 import { Button } from "@/components/ui/button";
 import useWarningBar from "@/hooks/useWarningBar";
+import { LocalStorageKey } from "@/lib/localStorage";
 import { cn } from "@/lib/utils";
 import { BellOffIcon, CloudOffIcon, DownloadCloudIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { FaDiscord } from "react-icons/fa";
 
-const LOCALSTORAGE_KEY = 'tsUpdateDismissed';
 const MAJOR_DISMISSAL_TIME = 12 * 60 * 60 * 1000;
 const MINOR_DISMISSAL_TIME = 48 * 60 * 60 * 1000;
 
 const getTsUpdateDismissed = () => {
-    const stored = localStorage.getItem(LOCALSTORAGE_KEY);
+    const stored = localStorage.getItem(LocalStorageKey.UpdateWarningPostponedTs);
     if (!stored) return false;
     const parsed = parseInt(stored);
     if (isNaN(parsed)) return false;
@@ -43,7 +43,7 @@ export function InnerWarningBar({ titleIcon, title, description, isImportant, ca
     }
 
     const postponeUpdate = () => {
-        localStorage.setItem(LOCALSTORAGE_KEY, Date.now().toString());
+        localStorage.setItem(LocalStorageKey.UpdateWarningPostponedTs, Date.now().toString());
         forceRerender()
     }
 

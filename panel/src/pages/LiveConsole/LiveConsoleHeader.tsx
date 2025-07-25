@@ -40,6 +40,7 @@ export default function LiveConsoleHeader(popoverProps: Omit<LiveConsoleOptionsP
                             setHasPendingRefresh(false);
                         }
                     }}>
+                        {/* FIXME:REMOVE:NEXT:UPDATE */}
                         <DynamicNewBadge featName="liveConsoleOptions" size="md" />
                         <PopoverTrigger asChild>
                             <button className="p-2 hover:bg-accent rounded-md">

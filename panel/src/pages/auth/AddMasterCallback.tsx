@@ -14,6 +14,7 @@ import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
 import consts from "@shared/consts";
 import { fetchWithTimeout } from "@/hooks/fetch";
 import { LogoutReasonHash } from "./Login";
+import { LocalStorageKey } from "@/lib/localStorage";
 
 
 function RegisterForm({ fivemId, fivemName, profilePicture }: ApiAddMasterCallbackFivemData) {
@@ -104,7 +105,7 @@ function RegisterForm({ fivemId, fivemName, profilePicture }: ApiAddMasterCallba
     //Prefill password if dev pass enabled
     useEffect(() => {
         try {
-            const rawLocalStorageStr = localStorage.getItem('authCredsAutofill');
+            const rawLocalStorageStr = localStorage.getItem(LocalStorageKey.AuthCredsAutofill);
             if (rawLocalStorageStr) {
                 const [user, pass] = JSON.parse(rawLocalStorageStr);
                 passwordRef.current!.value = pass ?? '';

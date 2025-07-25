@@ -1,32 +1,7 @@
 import { useAtom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { terminalDefaultOptions, type TerminalOptions, ScrollbackSizes, DensityModes, TimestampModes } from "./xtermOptions";
-
-
-/**
- * Storage Factory
- */
-const createValidatedStorage = <T>(validator: (value: unknown) => T, defaultValue: T) => {
-    return {
-        getItem: (key: string): T => {
-            const storedValue = localStorage.getItem(key);
-            if (!storedValue) return defaultValue;
-            try {
-                const parsedValue = JSON.parse(storedValue);
-                return validator(parsedValue);
-            } catch (error) {
-                return defaultValue;
-            }
-        },
-        setItem: (key: string, value: T): void => {
-            const validatedValue = validator(value);
-            localStorage.setItem(key, JSON.stringify(validatedValue));
-        },
-        removeItem: (key: string): void => {
-            localStorage.removeItem(key);
-        },
-    };
-};
+import { createValidatedStorage, LocalStorageKey, validateStringArray } from "@/lib/localStorage";
 
 
 /**
@@ -84,29 +59,25 @@ const validateTerminalOptions = (options: unknown): TerminalOptions => {
     return validatedOptions;
 };
 
-const validateStringArray = (value: unknown): string[] => {
-    if (!Array.isArray(value)) return [];
-    return value.filter((item): item is string => typeof item === 'string');
-};
 
 
 /**
  * Atoms
  */
 const terminalOptionsAtom = atomWithStorage<TerminalOptions>(
-    'liveConsoleOptions',
+    LocalStorageKey.LiveConsoleOptions,
     terminalDefaultOptions,
     createValidatedStorage(validateTerminalOptions, terminalDefaultOptions)
 );
 
 const liveConsoleHistoryAtom = atomWithStorage<string[]>(
-    'liveConsoleCommandHistory',
+    LocalStorageKey.LiveConsoleHistory,
     [],
     createValidatedStorage(validateStringArray, [])
 );
 
 const liveConsoleBookmarksAtom = atomWithStorage<string[]>(
-    'liveConsoleCommandBookmarks',
+    LocalStorageKey.LiveConsoleBookmarks,
     [],
     createValidatedStorage(validateStringArray, [])
 );
