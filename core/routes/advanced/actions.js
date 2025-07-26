@@ -4,6 +4,7 @@ import bytes from 'bytes';
 import got from '@lib/got';
 import consoleFactory from '@lib/console';
 import { SYM_SYSTEM_AUTHOR } from '@lib/symbols';
+import { msToShortishDuration } from '@lib/misc';
 const console = consoleFactory(modulename);
 
 //Helper functions
@@ -156,6 +157,22 @@ export default async function AdvancedActions(ctx) {
     } else if (action == 'printFxRunnerChildHistory') {
         const message = JSON.stringify(txCore.fxRunner.history, null, 2);
         return ctx.send({ type: 'success', message });
+
+    } else if (action == 'printFxResourcesBootLog') {
+        const bootLog = txCore.fxResources.latestBootLog;
+        if (!bootLog) {
+            return ctx.send({ type: 'danger', message: 'No boot log found' });
+        } else {
+            const maxResNameLength = Math.max(...bootLog.map((x) => x.resource.length));
+            const lines = bootLog
+                .sort((a, b) => b.duration - a.duration)
+                .map((x) => {
+                    const name = x.resource.padEnd(maxResNameLength);
+                    const duration = msToShortishDuration(x.duration, { units: ['m', 's', 'ms'] });
+                    return `${name} - ${duration}`;
+                });
+            return ctx.send({ type: 'success', message: lines.join('\n') });
+        }
 
     } else if (action == 'xxxxxx') {
         return ctx.send({ type: 'success', message: '😀👍' });
