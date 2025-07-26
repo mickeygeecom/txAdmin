@@ -220,7 +220,7 @@ export default class AdminStore {
             return {
                 name: user.name,
                 master: user.master,
-                providers: Object.keys(user.providers),
+                providers: user.providers,
                 permissions: user.permissions,
             };
         });
