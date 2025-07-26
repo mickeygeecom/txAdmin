@@ -13,6 +13,7 @@ const console = consoleFactory(modulename);
 
 //NOTE: The way I'm doing versioning right now is horrible but for now it's the best I can do
 //NOTE: I do not need to version every admin, just the file itself
+//NOTE: The only reason every admin has a schema is because I did not want to change the format of the file
 const ADMIN_SCHEMA_VERSION = 1;
 
 
@@ -46,7 +47,7 @@ export default class AdminStore {
         //FIXME: move to a separate file
         //TODO: maybe put in @shared so the frontend's UnauthorizedPage can use it
         //TODO: when migrating the admins page to react, definitely put this in @shared so the front rendering doesn't depend on the backend response - lessons learned from the settings page.
-        //FIXME: if not using enums, definitely use so other type of type safety
+        //FIXME: if not using enums, definitely use some other type of type safety
         //FIXME: maybe rename all_permissions to `administrator` (just like discord) or `super_admin` and rename the `Admins` page to `Users`. This fits better with how people use txAdmin as "mods" are not really admins
         this.registeredPermissions = {
             'all_permissions': 'All Permissions',
@@ -340,7 +341,7 @@ export default class AdminStore {
                 restore();
             }
         } catch (error) {
-            console.error(`Cannot check admins file integrity: ${error.message}`);
+            console.error(`Failed to check admins file integrity: ${error.message}`);
         }
     }
 
@@ -614,6 +615,7 @@ export default class AdminStore {
 
     /**
      * Notify game server about admin changes
+     * FIXME: doesn't need to be async, just make sure it never throws
      */
     async refreshOnlineAdmins() {
         //Refresh auth of all admins connected to socket.io
@@ -621,6 +623,7 @@ export default class AdminStore {
 
         try {
             //Getting all admin identifiers
+            //FIXME: use getAdminsIdentifiers() instead
             const adminIDs = this.admins.reduce((ids, adm) => {
                 const adminIDs = Object.keys(adm.providers).map((pName) => adm.providers[pName].identifier);
                 return ids.concat(adminIDs);

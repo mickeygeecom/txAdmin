@@ -4,6 +4,10 @@ Legend:
 - [!] -> Release Blocker
 - [?] -> Lower priority or pending investigation
 
+## Before Updating:
+- Search for all FIXME:REMOVE:NEXT:UPDATE
+- Re-enable diagnostics report
+
 ## Feat
 - [x] Option to delete player identifiers
     - Ref: https://github.com/tabarra/txAdmin/issues/751
@@ -96,6 +100,8 @@ Legend:
 - [ ] fix circular dependencies
     - search for `circular_dependency`
     - use `madge` (command at the bottom of file)
+- [ ] migrate shadcn to use the radix monorepo vis its migration tool
+    - ref: https://x.com/shadcn/status/1932819652524355998
 
 ## Previous bugs
 - [ ] use `ScanResourceRoot()`
@@ -105,7 +111,7 @@ Legend:
 
 ## Pending Improvements
 - [ ] Settings Page:
-    - [ ] bake in the defaults, so so SwitchText's don't show fale initial value
+    - [ ] bake in the defaults, so so SwitchText's don't show false initial value
     - [ ] check for pending changes on the navigate-away buttons
     - [ ] use jsonForgivingParse for embed jsons and custom locale
     - [ ] use the standalone json editor page
@@ -116,9 +122,9 @@ Legend:
         - try messing with the canvas size +- 0.5px
     - [ ] review page layout: 
         - [ ] make it less card-y
-        - [ ] fix crashes table is not responsive
-        - [ ] fix scroll popping in/out
-    - [ ] switch from `useSWRImmutable` to `useSWR`
+        - [x] fix crashes table is not responsive
+        - [x] fix scroll popping in/out
+    - [x] switch from `useSWRImmutable` to `useSWR`
     - [ ] add drilldown interval buttons
 - Dashboard stuff:
     - [ ] add testing for getServerStatsData
@@ -305,7 +311,8 @@ https://tailwindcss.com/blog/automatic-class-sorting-with-prettier
 - [ ] remove more pending DynamicNewBadge/DynamicNewItem (settings page as well)
 - [ ] reevaluate globals?.tmpSetHbDataTracking
 - [ ] fix socket.io multiple connections - start a single instance when page opens, commands to switch rooms
-- [ ] switch tx to lua54
+- [ ] considering lua54 is enabled by default, use new options
+- [ ] test `node_version '22'`
 
 - [ ] build: generate fxmanifest files list dynamically
     - node 22 use fs.glob
@@ -621,6 +628,7 @@ https://uicolors.app/create
 https://www.tailwindshades.com/
 https://contrast.tools/?tab=apca
 https://atmos.style/contrast-checker
+https://tweakcn.com/editor/theme
 https://realtimecolors.com/
 https://www.learnui.design/blog/color-in-ui-design-a-practical-framework.html
 https://www.refactoringui.com/previews/building-your-color-palette

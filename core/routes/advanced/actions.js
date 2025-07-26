@@ -154,7 +154,7 @@ export default async function AdvancedActions(ctx) {
         }
 
     } else if (action == 'printFxRunnerChildHistory') {
-        const message = JSON.stringify(txCore.fxRunner.history, null, 2)
+        const message = JSON.stringify(txCore.fxRunner.history, null, 2);
         return ctx.send({ type: 'success', message });
 
     } else if (action == 'xxxxxx') {

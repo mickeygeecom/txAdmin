@@ -262,7 +262,7 @@ async function checkAdminOnlyMode(
     };
 
     //Check if fivem/discord ids are available
-    if (!validIdsObject.license && !validIdsObject.discord) {
+    if (!validIdsObject.fivem && !validIdsObject.discord) {
         return {
             allow: false,
             reason: rejectMessageTemplate(
