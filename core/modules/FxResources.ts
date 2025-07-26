@@ -80,7 +80,9 @@ export default class FxResources {
                     tsBooted: Date.now(),
                 });
             } else {
-                console.verbose.error(`Resource ${resource} started while ${this.resBooting?.name ?? 'unknown'} was booting`);
+                if (resource !== 'monitor') {
+                    console.verbose.warn(`Resource ${resource} started while ${this.resBooting?.name ?? 'unknown'} was booting`);
+                }
                 this.resBootLog.push({
                     resource,
                     duration: -1,

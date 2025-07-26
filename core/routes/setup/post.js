@@ -48,7 +48,7 @@ const getPotentialServerDataFolders = (source) => {
  * Handle all the server control actions
  * FIXME: separate into validate.ts, saveDeployer.ts, and saveLocal.ts files
  * FIXME: or maybe postDeployer.ts, and postLocal.ts files
- * @param {object} ctx
+ * @param {import('@modules/WebServer/ctxTypes').AuthedCtx} ctx
  */
 export default async function SetupPost(ctx) {
     //Sanity check
@@ -101,7 +101,7 @@ export default async function SetupPost(ctx) {
 
 /**
  * Handle Validation of a remote recipe/template URL
- * @param {object} ctx
+ * @param {import('@modules/WebServer/ctxTypes').AuthedCtx} ctx
  */
 async function handleValidateRecipeURL(ctx) {
     //Sanity check
@@ -127,7 +127,7 @@ async function handleValidateRecipeURL(ctx) {
 
 /**
  * Handle Validation of a remote recipe/template URL
- * @param {object} ctx
+ * @param {import('@modules/WebServer/ctxTypes').AuthedCtx} ctx
  */
 async function handleValidateLocalDeployPath(ctx) {
     //Sanity check
@@ -148,7 +148,7 @@ async function handleValidateLocalDeployPath(ctx) {
 
 /**
  * Handle Validation of Local (existing) Server Data Folder
- * @param {object} ctx
+ * @param {import('@modules/WebServer/ctxTypes').AuthedCtx} ctx
  */
 async function handleValidateLocalDataFolder(ctx) {
     //Sanity check
@@ -210,7 +210,7 @@ async function handleValidateLocalDataFolder(ctx) {
 
 /**
  * Handle Validation of CFG File
- * @param {object} ctx
+ * @param {import('@modules/WebServer/ctxTypes').AuthedCtx} ctx
  */
 async function handleValidateCFGFile(ctx) {
     //Sanity check
@@ -243,7 +243,7 @@ async function handleValidateCFGFile(ctx) {
 /**
  * Handle Save settings for local server data imports
  * Actions: sets serverDataPath/cfgPath, starts the server, redirect to live console
- * @param {object} ctx
+ * @param {import('@modules/WebServer/ctxTypes').AuthedCtx} ctx
  */
 async function handleSaveLocal(ctx) {
     //Sanity check
@@ -322,7 +322,7 @@ async function handleSaveLocal(ctx) {
 /**
  * Handle Save settings for remote recipe importing
  * Actions: download recipe, starts deployer
- * @param {object} ctx
+ * @param {import('@modules/WebServer/ctxTypes').AuthedCtx} ctx
  */
 async function handleSaveDeployerImport(ctx) {
     //Sanity check
@@ -383,7 +383,7 @@ async function handleSaveDeployerImport(ctx) {
 /**
  * Handle Save settings for custom recipe
  * Actions: download recipe, starts deployer
- * @param {object} ctx
+ * @param {import('@modules/WebServer/ctxTypes').AuthedCtx} ctx
  */
 async function handleSaveDeployerCustom(ctx) {
     //Sanity check

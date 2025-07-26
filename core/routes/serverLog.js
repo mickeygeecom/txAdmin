@@ -5,7 +5,7 @@ const console = consoleFactory(modulename);
 
 /**
  * Returns the server log page
- * @param {object} ctx
+ * @param {import('@modules/WebServer/ctxTypes').AuthedCtx} ctx
  */
 export default async function ServerLog(ctx) {
     //Check permissions

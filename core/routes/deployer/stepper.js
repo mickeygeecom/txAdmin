@@ -8,7 +8,7 @@ const console = consoleFactory(modulename);
 
 /**
  * Returns the output page containing the deployer stepper page (all 3 stages)
- * @param {object} ctx
+ * @param {import('@modules/WebServer/ctxTypes').AuthedCtx} ctx
  */
 export default async function DeployerStepper(ctx) {
     //Check permissions

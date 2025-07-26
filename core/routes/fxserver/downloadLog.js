@@ -6,7 +6,7 @@ const console = consoleFactory(modulename);
 
 /**
  * Returns the console log file
- * @param {object} ctx
+ * @param {import('@modules/WebServer/ctxTypes').AuthedCtx} ctx
  */
 export default async function FXServerDownloadLog(ctx) {
     //Check permissions

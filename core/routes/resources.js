@@ -44,7 +44,7 @@ const getResourceSubPath = (resPath) => {
 
 /**
  * Returns the resources list
- * @param {object} ctx
+ * @param {import('@modules/WebServer/ctxTypes').AuthedCtx} ctx
  */
 export default async function Resources(ctx) {
     if (!txCore.fxRunner.child?.isAlive) {
