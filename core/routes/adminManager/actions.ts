@@ -241,11 +241,48 @@ async function handleEdit(ctx: AuthedCtx) {
         }
     }
 
+    //List changes
+    const permsAdded = permissions.filter((x: string) => !admin.permissions.includes(x));
+    const permsRemoved = admin.permissions.filter((x: string) => !permissions.includes(x));
+    const changes: string[] = [];
+    if (permsAdded.includes('all_permissions')) {
+        changes.push('Added all permissions.');
+    } else {
+        if (permsAdded.length) {
+            changes.push(`Added permissions: ${JSON.stringify(permsAdded)}.`);
+        }
+        if (permsRemoved.length) {
+            changes.push(`Removed permissions: ${JSON.stringify(permsRemoved)}.`);
+        }
+    }
+    const prevCfxId = admin.providers?.citizenfx?.identifier;
+    if (!prevCfxId && citizenfxData) {
+        changes.push(`Added Cfx.re ID: ${citizenfxData.identifier}.`);
+    } else if (prevCfxId && !citizenfxData) {
+        changes.push(`Removed Cfx.re ID: ${prevCfxId}.`);
+    } else if (prevCfxId && citizenfxData && prevCfxId !== citizenfxData.identifier) {
+        changes.push(`Changed Cfx.re ID from ${prevCfxId} to ${citizenfxData.identifier}.`);
+    }
+    const prevDiscordId = admin.providers?.discord?.identifier;
+    if (!prevDiscordId && discordData) {
+        changes.push(`Added Discord ID: ${discordData.identifier}.`);
+    } else if (prevDiscordId && !discordData) {
+        changes.push(`Removed Discord ID: ${prevDiscordId}.`);
+    } else if (prevDiscordId && discordData && prevDiscordId !== discordData.identifier) {
+        changes.push(`Changed Discord ID from ${prevDiscordId} to ${discordData.identifier}.`);
+    }
+
     //Add admin and give output
     try {
+        let logMessage = `Editing user '${name}'`;
+        if (changes.length) {
+            logMessage += `: ${changes.join(' ')}`;
+        } else {
+            logMessage += '. No changes were made.';
+        }
         await txCore.adminStore.editAdmin(name, null, citizenfxData, discordData, permissions);
-        ctx.admin.logAction(`Editing user '${name}'.`);
-        return ctx.send({type: 'success', refresh: true});
+        ctx.admin.logAction(logMessage);
+        return ctx.send({ type: 'success', refresh: true });
     } catch (error) {
         return ctx.send({type: 'danger', message: (error as Error).message});
     }
