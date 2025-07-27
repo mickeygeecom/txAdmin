@@ -80,7 +80,7 @@ async function handleAdd(ctx: AuthedCtx) {
     }
 
     //Validate & translate FiveM ID
-    let citizenfxData: ProviderDataType | undefined;
+    let citizenfxData: ProviderDataType | false = false;
     if (citizenfxID.length) {
         try {
             if (consts.validIdentifiers.fivem.test(citizenfxID)) {
@@ -111,7 +111,7 @@ async function handleAdd(ctx: AuthedCtx) {
     }
 
     //Validate Discord ID
-    let discordData: ProviderDataType | undefined;
+    let discordData: ProviderDataType | false = false;
     if (discordID.length) {
         if (!consts.validIdentifierParts.discord.test(discordID)) {
             return ctx.send({ type: 'danger', message: 'Invalid Discord ID' });
@@ -133,10 +133,17 @@ async function handleAdd(ctx: AuthedCtx) {
         }
     }
 
+    //List changes
+    const changes = {
+        cfxId: citizenfxData ? citizenfxData.identifier : undefined,
+        discordId: discordData ? discordData.identifier : undefined,
+        permissions: permissions,
+    };
+
     //Add admin and give output
     try {
         await txCore.adminStore.addAdmin(name, citizenfxData, discordData, password, permissions);
-        ctx.admin.logAction(`Adding user '${name}'.`);
+        ctx.admin.logAction(`Adding user '${name}' with ${JSON.stringify(changes)}`);
         return ctx.send({ type: 'showPassword', password });
     } catch (error) {
         return ctx.send({ type: 'danger', message: (error as Error).message });
