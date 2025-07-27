@@ -19,8 +19,10 @@ type MarkdownProseProps = {
     isSmall?: boolean;
     isTitle?: boolean;
     isToast?: boolean;
+    className?: string;
 };
-export default function MarkdownProse({ md, isSmall, isTitle, isToast }: MarkdownProseProps) {
+export default function MarkdownProse({ md, isSmall, isTitle, isToast, className }: MarkdownProseProps) {
+    //FIXME: the \n replacer should ignore code blocks
     return (
         <Markdown
             components={customComponents}
@@ -29,6 +31,7 @@ export default function MarkdownProse({ md, isSmall, isTitle, isToast }: Markdow
                 isSmall && 'prose-sm',
                 isTitle && 'tracking-wide',
                 isToast && 'prose-toast',
+                className,
             )}
         >
             {stripIndent(md.replace(/\n/g, '  \n'))}

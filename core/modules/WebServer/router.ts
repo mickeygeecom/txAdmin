@@ -28,7 +28,6 @@ export default () => {
 
     //Rendered Pages
     router.get('/legacy/adminManager', webAuthMw, routes.adminManager_page);
-    router.get('/legacy/advanced', webAuthMw, routes.advanced_page);
     router.get('/legacy/cfgEditor', webAuthMw, routes.cfgEditor_page);
     router.get('/legacy/masterActions', webAuthMw, routes.masterActions_page);
     router.get('/legacy/resources', webAuthMw, routes.resources);
@@ -83,7 +82,7 @@ export default () => {
     //Diagnostic routes
     router.get('/diagnostics/getDiagnostics', apiAuthMw, routes.diagnostics_getDiagnostics);
     router.post('/diagnostics/sendReport', apiAuthMw, routes.diagnostics_sendReport);
-    router.post('/advanced', apiAuthMw, routes.advanced_actions);
+    router.post('/advanced/run', apiAuthMw, routes.advanced_runCommand);
 
     //Data routes
     router.get('/serverLog/partial', apiAuthMw, routes.serverLogPartial);

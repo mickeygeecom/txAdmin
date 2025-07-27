@@ -13,7 +13,7 @@ import { chalkInversePad } from '@lib/misc';
 const console = consoleFactory();
 
 
-const getPublicIp = async () => {
+export const getPublicIp = async () => {
     const zIpValidator = z.string().ip();
     const reqOptions = {
         timeout: { request: 2000 },

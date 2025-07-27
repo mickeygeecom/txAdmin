@@ -20,6 +20,7 @@ import PlayerDropsPage from "@/pages/PlayerDropsPage/PlayerDropsPage";
 import SettingsPage from "@/pages/Settings/SettingsPage";
 import UnauthorizedPage from "@/pages/UnauthorizedPage";
 import DiagnosticsPage from "@/pages/Diagnostics/DiagnosticsPage";
+import AdvancedPage from "@/pages/AdvancedPage";
 
 
 type RouteType = {
@@ -131,7 +132,7 @@ const allRoutes: RouteType[] = [
         path: '/advanced',
         title: 'Advanced',
         permission: 'all_permissions',
-        Page: <Iframe legacyUrl="advanced" />
+        Page: <AdvancedPage />
     },
 
     //No nav routes
