@@ -350,8 +350,8 @@ export default class AdminStore {
      * Add a new admin to the admins file
      * NOTE: I'm fully aware this coud be optimized. Leaving this way to improve readability and error verbosity
      * @param {string} name
-     * @param {object|undefined} citizenfxData or false
-     * @param {object|undefined} discordData or false
+     * @param {object|false} citizenfxData or false
+     * @param {object|false} discordData or false
      * @param {string} password
      * @param {array} permissions
      */
