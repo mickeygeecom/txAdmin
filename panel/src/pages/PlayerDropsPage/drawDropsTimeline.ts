@@ -76,7 +76,10 @@ export default function drawDropsTimeline({
     console.log('Drawable area:', drawableAreaWidth, drawableAreaHeight);
 
     const chartGroup = svg.append('g')
-        .attr('transform', translate(margins.left, margins.top));
+        .attr('transform', translate(margins.left, margins.top))
+        .attr('class', 'interaction-chart')
+        .attr('data-selected', 'false');
+    const chartGroupData = chartGroup.node()?.dataset;
 
 
     //Scales
@@ -238,6 +241,12 @@ export default function drawDropsTimeline({
         .attr('stroke-width', 1)
         .attr('stroke-dasharray', '3,3');
 
+    const cursorHighlight = chartGroup.append('rect')
+        .attr('fill', 'transparent')
+        .attr('height', drawableAreaHeight)
+        .attr('opacity', '0')
+        .attr('class', 'transition-opacity interaction-highlight');
+
     //Range selector mark
     const defs = chartGroup.append('defs');
     const mask = defs.append('mask')
@@ -258,6 +267,14 @@ export default function drawDropsTimeline({
         .attr('mask', `url(#${maskElmntId})`);
 
     //Helpers
+    const getRangeBar = (x1: number, x2: number) => {
+        const x1Floor = Math.floor(x1);
+        const x2Floor = Math.floor(x2);
+        const start = Math.min(x1Floor, x2Floor) + 0.5 - barCenterOffset;
+        const width = Math.abs(x2Floor - x1Floor) + intervalWidth + 0.5;
+        return { start, width };
+    }
+
     const updateRangeRect = (x1?: number, x2?: number) => {
         //Hide mask
         if (
@@ -266,16 +283,15 @@ export default function drawDropsTimeline({
             || (x1 > drawableAreaWidth && x2 > drawableAreaWidth)
         ) {
             maskArea.attr('opacity', '0');
+            chartGroup.attr('data-selected', 'false');
             return;
         }
 
         //Set mask
-        const x1Floor = Math.floor(x1);
-        const x2Floor = Math.floor(x2);
-        maskRect
-            .attr('x', Math.min(x1Floor, x2Floor) + 0.5 - barCenterOffset)
-            .attr('width', Math.abs(x2Floor - x1Floor) + intervalWidth + 0.5);
+        const { start, width } = getRangeBar(x1, x2);
+        maskRect.attr('x', start).attr('width', width);
         maskArea.attr('opacity', '1');
+        chartGroup.attr('data-selected', 'true');
     }
     const setUpstreamRangeState = (range: [date1: Date, date2: Date] | null) => {
         if (!Array.isArray(range) || range.length !== 2) {
@@ -320,13 +336,14 @@ export default function drawDropsTimeline({
     }
 
     //Find the closest data point for a given X value
+    const filteredLog = data.log.filter((datum) => datum.drops.length > 0);
     const timeBisector = d3.bisector((interval: TimelineDropsDatum) => interval.startDate).center;
     const findClosestDatum = (pointerX: number) => {
         // const xPosDate = timeScale.invert(pointerX - intervalWidth / 2);
         const xPosDate = timeScale.invert(pointerX);
-        const indexFound = timeBisector(data.log, xPosDate);
+        const indexFound = timeBisector(filteredLog, xPosDate);
         if (indexFound === -1) return;
-        const datum = data.log[indexFound];
+        const datum = filteredLog[indexFound];
         const datumStartTs = datum.startDate.getTime();
         return {
             datum,
@@ -341,7 +358,10 @@ export default function drawDropsTimeline({
     const handleMouseMove = (pointerX: number) => {
         // Find closest data point
         const datumFound = findClosestDatum(pointerX);
-        if (!datumFound) return;
+        if (!datumFound) {
+            cursorHighlight.attr('opacity', '0');
+            return;
+        }
         const { datum, datumStartX, dataumIndex } = datumFound;
         if (dataumIndex === lastDatumIndex) return;
         lastDatumIndex = dataumIndex;
@@ -351,6 +371,8 @@ export default function drawDropsTimeline({
             rangeCrossedThreshold = true;
             return updateRangeRect(rangeStartData.x, datumStartX);
         }
+
+        if (chartGroupData?.selected === 'true') return;
 
         //Set legend data
         const allNumEls = legendRef.querySelectorAll<HTMLSpanElement>('span[data-category]');
@@ -389,13 +411,21 @@ export default function drawDropsTimeline({
         }
 
         // Draw cursor
-        const cursorX = Math.round(datumStartX + intervalWidth / 2) + 0.5 - barCenterOffset;
-        cursorLineVert.attr('x1', cursorX).attr('y1', 0).attr('x2', cursorX).attr('y2', drawableAreaHeight);
+        // const cursorX = Math.round(datumStartX + intervalWidth / 2) + 0.5 - barCenterOffset;
+        // cursorLineVert.attr('x1', cursorX).attr('y1', 0).attr('x2', cursorX).attr('y2', drawableAreaHeight);
+
+        // Draw cursor highlight bar
+        const barX = getRangeBar(datumStartX, datumStartX);
+        cursorHighlight
+            .attr('x', barX.start)
+            .attr('width', barX.width)
+            .attr('opacity', '1');
     };
 
     const handleMouseDown = (pointerX: number) => {
         const datumFound = findClosestDatum(pointerX);
         if (!datumFound) return;
+        chartGroup.attr('data-mousedown', 'true');
         hideCursor();
         rangeStartData = {
             x: datumFound.datumStartX,
@@ -405,10 +435,15 @@ export default function drawDropsTimeline({
     }
 
     const handleMouseUp = (pointerX: number) => {
+        chartGroup.attr('data-mousedown', 'false');
         if (!rangeStartData) return clearRangeData(true);
         const datumFound = findClosestDatum(pointerX);
         if (!datumFound) return clearRangeData(true);
-        if (!rangeCrossedThreshold && rangeStartData.datum.startDate.getTime() === datumFound.datum.startDate.getTime()) {
+        // if (!rangeCrossedThreshold && rangeStartData.datum.startDate.getTime() === datumFound.datum.startDate.getTime()) {
+        //     return clearRangeData(true);
+        // }
+
+        if (rangeSelected && chartGroupData?.selected !== 'true') {
             return clearRangeData(true);
         }
 
@@ -423,6 +458,8 @@ export default function drawDropsTimeline({
     }
 
     const handleMouseLeave = () => {
+        chartGroup.attr('data-mousedown', 'false');
+        cursorHighlight.attr('opacity', '0');
         setTimeout(() => {
             clearRangeData(!!rangeStartData);
             hideCursor();
@@ -432,30 +469,28 @@ export default function drawDropsTimeline({
     // Handle svg mouse events
     let isEventInCooldown = false;
     const cooldownTime = 20;
-    chartGroup.append('rect')
-        .attr('width', drawableAreaWidth)
-        .attr('height', drawableAreaHeight)
-        .attr('fill', 'transparent')
-        .on('mousemove', function (event) {
-            const [pointerX] = d3.pointer(event);
-            if (!isEventInCooldown) {
-                isEventInCooldown = true;
+    chartGroup.on('mousemove', function (event) {
+        const [pointerX] = d3.pointer(event);
+        if (!isEventInCooldown) {
+            isEventInCooldown = true;
+            handleMouseMove(pointerX);
+            setTimeout(() => {
+                isEventInCooldown = false;
+            }, cooldownTime);
+        } else {
+            clearTimeout(cursorRedrawTimeout);
+            cursorRedrawTimeout = setTimeout(() => {
                 handleMouseMove(pointerX);
-                setTimeout(() => {
-                    isEventInCooldown = false;
-                }, cooldownTime);
-            } else {
-                clearTimeout(cursorRedrawTimeout);
-                cursorRedrawTimeout = setTimeout(() => {
-                    handleMouseMove(pointerX);
-                }, cooldownTime);
-            }
-        })
-        .on('mousedown', function (event) {
+            }, cooldownTime);
+        }
+    })
+        .on('mousedown', function (event: MouseEvent) {
+            if (event.button !== 0) return; //left btn only
             const [pointerX] = d3.pointer(event);
             handleMouseDown(pointerX);
         })
         .on('mouseup', function (event) {
+            if (event.button !== 0) return; //left btn only
             const [pointerX] = d3.pointer(event);
             handleMouseUp(pointerX);
         });
