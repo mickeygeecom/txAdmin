@@ -1,8 +1,8 @@
-import { PageHeader } from "@/components/page-header";
+import { PageHeader, PageHeaderChangelog } from "@/components/page-header";
 import { txToast } from "@/components/TxToaster";
 import { useBackendApi } from "@/hooks/fetch";
 import type { GetConfigFileResp } from "@shared/otherTypes";
-import { FileEditIcon } from "lucide-react";
+import { FileEditIcon, Settings2Icon } from "lucide-react";
 import { useRef, useState } from "react";
 import useSWR from "swr";
 import ConfigEditorHeader from "./ConfigEditorHeader";
@@ -76,7 +76,15 @@ export default function ConfigEditorPage() {
 
     return (
         <div className="w-full h-full flex flex-col max-h-contentvh">
-            <PageHeader title="Config Editor" icon={<FileEditIcon />} />
+            <PageHeader title="Config Editor" icon={<Settings2Icon />}>
+                <PageHeaderChangelog
+                    changelogData={[{
+                        author: 'tabarra',
+                        ts: Date.now(),
+                        keys: ['configEditor'],
+                    }]}
+                />
+            </PageHeader>
             <div className="grow px-0 xs:px-3 md:px-0 w-full h-32">
                 <div className="flex flex-col gap-2 h-full">
                     <ConfigEditorHeader

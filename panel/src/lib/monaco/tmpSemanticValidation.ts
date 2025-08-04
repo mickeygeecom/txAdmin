@@ -1,6 +1,7 @@
 //NOTE: exploratory code, not used in the final codebase
 import * as monaco from 'monaco-editor';
 import { parseConfigLine } from './tmpConfigParser';
+import * as fivemConfigLang from "@/lib/monaco/fivemConfigLanguage";
 
 export const register = (monacoInstance: typeof monaco) => {
     const markerOwner = 'fivem-cfg-validator';
@@ -96,7 +97,7 @@ export const register = (monacoInstance: typeof monaco) => {
     // Register the validator to run when the model changes
     //FIXME: not sure if this is needed, probably not. What is a model anyways?
     monacoInstance.editor.onDidCreateModel((model) => {
-        if (model.getLanguageId() === 'fivem-cfg') {
+        if (model.getLanguageId() === fivemConfigLang.LANG) {
             // Initial validation
             validateFivemConfig(model);
 

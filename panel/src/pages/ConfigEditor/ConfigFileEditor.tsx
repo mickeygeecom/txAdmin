@@ -4,6 +4,8 @@ import type { editor } from 'monaco-editor'; //peer dependency
 import { useIsDarkMode } from "@/hooks/theme";
 import { registerDefaultHotkeys, registerResizeWatcher } from "@/lib/monaco/editorUtils";
 import * as fivemConfigLang from "@/lib/monaco/fivemConfigLanguage";
+import * as tmpWordHover from "@/lib/monaco/tmpWordHover";
+import * as tmpSemanticValidation from "@/lib/monaco/tmpSemanticValidation";
 
 type ConfigFileEditorProps = {
     editorRef: React.MutableRefObject<editor.IStandaloneCodeEditor | null>;
@@ -37,6 +39,8 @@ export default function ConfigFileEditor({ editorRef, fileData, onSaveChanges }:
                 theme={isDarkMode ? fivemConfigLang.THEME.dark : fivemConfigLang.THEME.light}
                 beforeMount={(monaco) => {
                     fivemConfigLang.register(monaco);
+                    tmpWordHover.register(monaco);
+                    tmpSemanticValidation.register(monaco);
                 }}
                 onMount={(editor, monaco) => {
                     //init
