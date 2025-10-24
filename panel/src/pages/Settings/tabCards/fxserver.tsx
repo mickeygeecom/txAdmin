@@ -3,7 +3,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import SwitchText from '@/components/SwitchText'
 import InlineCode from '@/components/InlineCode'
 import { AdvancedDivider, SettingItem, SettingItemDesc } from '../settingsItems'
-import { useState, useEffect, useRef, useMemo, useReducer } from "react"
+import { useState, useEffect, useRef, useMemo, useReducer, useCallback, type ChangeEvent } from "react"
 import { getConfigEmptyState, getConfigAccessors, SettingsCardProps, getPageConfig, configsReducer, getConfigDiff, type PageConfigReducerAction } from "../utils"
 import { PlusIcon, TrashIcon, Undo2Icon, XIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -29,6 +29,17 @@ function sanitizeTimes(times: string[]): string[] {
         return aHours - bHours || aMinutes - bMinutes;
     });
 }
+
+
+const DEFAULT_RESTART_SCRIPT_CONFIG = Object.freeze({
+    enabled: false,
+    scriptPath: '',
+    workingDirectory: '',
+    args: '',
+    messagePattern: 'restart',
+    delayMs: 2000,
+});
+type RestartScriptConfig = typeof DEFAULT_RESTART_SCRIPT_CONFIG;
 
 
 type RestartScheduleBoxProps = {
@@ -185,6 +196,7 @@ export const pageConfigs = {
     dataPath: getPageConfig('server', 'dataPath'),
     restarterSchedule: getPageConfig('restarter', 'schedule'),
     quietMode: getPageConfig('server', 'quiet'),
+    restartScript: getPageConfig('server', 'restartScript', true),
 
     cfgPath: getPageConfig('server', 'cfgPath', true),
     startupArgs: getPageConfig('server', 'startupArgs', true),
@@ -222,6 +234,35 @@ export default function ConfigCardFxserver({ cardCtx, pageCtx }: SettingsCardPro
     const cfgPathRef = useRef<HTMLInputElement | null>(null);
     const startupArgsRef = useRef<HTMLInputElement | null>(null);
     const forceQuietMode = pageCtx.apiData?.forceQuietMode;
+
+    const restartScriptDefaults = useMemo<RestartScriptConfig>(() => ({
+        ...DEFAULT_RESTART_SCRIPT_CONFIG,
+        ...(cfg.restartScript.defaultValue ?? {}),
+    }), [cfg.restartScript.defaultValue]);
+
+    const restartScriptInitial = useMemo<RestartScriptConfig>(() => ({
+        ...restartScriptDefaults,
+        ...(cfg.restartScript.initialValue ?? {}),
+    }), [cfg.restartScript.initialValue, restartScriptDefaults]);
+
+    const restartScriptState = useMemo<RestartScriptConfig>(() => ({
+        ...restartScriptInitial,
+        ...(states.restartScript ?? {}),
+    }), [restartScriptInitial, states.restartScript]);
+
+    const mergeRestartScript = useCallback((prev?: RestartScriptConfig) => ({
+        ...restartScriptDefaults,
+        ...(cfg.restartScript.initialValue ?? {}),
+        ...(prev ?? {}),
+    }), [cfg.restartScript.initialValue, restartScriptDefaults]);
+
+    const restartScriptSet = cfg.restartScript.state.set;
+    const updateRestartScript = useCallback((patch: Partial<RestartScriptConfig>) => {
+        restartScriptSet((prev: RestartScriptConfig | undefined) => ({
+            ...mergeRestartScript(prev),
+            ...patch,
+        }));
+    }, [mergeRestartScript, restartScriptSet]);
 
     //Marshalling Utils
     const selectNumberUtil = {
@@ -409,6 +450,109 @@ export default function ConfigCardFxserver({ cardCtx, pageCtx }: SettingsCardPro
             </SettingItem>
 
             {showAdvanced && <AdvancedDivider />}
+
+            <SettingItem label="Restart Script" showIf={showAdvanced}>
+                <SwitchText
+                    id={`${cfg.restartScript.eid}-enabled`}
+                    checkedLabel="Enabled"
+                    uncheckedLabel="Disabled"
+                    checked={restartScriptState.enabled}
+                    onCheckedChange={(checked: boolean) => updateRestartScript({ enabled: checked })}
+                    disabled={pageCtx.isReadOnly}
+                />
+                <SettingItemDesc>
+                    Run a Windows batch file after txAdmin kicks every player during a planned restart. The script is started with <InlineCode>cmd.exe /c</InlineCode> and runs independently from txAdmin, so make sure it handles errors on its own.
+                </SettingItemDesc>
+            </SettingItem>
+            <SettingItem
+                label="Batch File Path"
+                htmlFor={`${cfg.restartScript.eid}-path`}
+                showIf={showAdvanced}
+                required={restartScriptState.enabled}
+            >
+                <Input
+                    id={`${cfg.restartScript.eid}-path`}
+                    value={restartScriptState.scriptPath}
+                    onChange={(event: ChangeEvent<HTMLInputElement>) => updateRestartScript({ scriptPath: event.target.value })}
+                    placeholder="C:/my-server/scripts/restart.bat"
+                    disabled={pageCtx.isReadOnly}
+                />
+                <SettingItemDesc>
+                    Absolute path to the <InlineCode>.bat</InlineCode> to execute. The file should exist on the machine that is running FXServer.
+                </SettingItemDesc>
+            </SettingItem>
+            <SettingItem
+                label="Working Directory"
+                htmlFor={`${cfg.restartScript.eid}-cwd`}
+                showIf={showAdvanced}
+            >
+                <Input
+                    id={`${cfg.restartScript.eid}-cwd`}
+                    value={restartScriptState.workingDirectory}
+                    onChange={(event: ChangeEvent<HTMLInputElement>) => updateRestartScript({ workingDirectory: event.target.value })}
+                    placeholder="C:/my-server"
+                    disabled={pageCtx.isReadOnly}
+                />
+                <SettingItemDesc>
+                    Optional directory passed as the process working directory. Leave blank to inherit the FXServer data folder.
+                </SettingItemDesc>
+            </SettingItem>
+            <SettingItem
+                label="Arguments"
+                htmlFor={`${cfg.restartScript.eid}-args`}
+                showIf={showAdvanced}
+            >
+                <Input
+                    id={`${cfg.restartScript.eid}-args`}
+                    value={restartScriptState.args}
+                    onChange={(event: ChangeEvent<HTMLInputElement>) => updateRestartScript({ args: event.target.value })}
+                    placeholder="--pull --restart"
+                    disabled={pageCtx.isReadOnly}
+                />
+                <SettingItemDesc>
+                    Extra arguments appended after the batch file name.
+                </SettingItemDesc>
+            </SettingItem>
+            <SettingItem
+                label="Message Filter"
+                htmlFor={`${cfg.restartScript.eid}-pattern`}
+                showIf={showAdvanced}
+            >
+                <Input
+                    id={`${cfg.restartScript.eid}-pattern`}
+                    value={restartScriptState.messagePattern}
+                    onChange={(event: ChangeEvent<HTMLInputElement>) => updateRestartScript({ messagePattern: event.target.value })}
+                    placeholder="restart"
+                    disabled={pageCtx.isReadOnly}
+                />
+                <SettingItemDesc>
+                    The shutdown announcement must contain this text (case-insensitive) for the script to run. Leave blank to match every restart message.
+                </SettingItemDesc>
+            </SettingItem>
+            <SettingItem
+                label="Launch Delay (ms)"
+                htmlFor={`${cfg.restartScript.eid}-delay`}
+                showIf={showAdvanced}
+            >
+                <Input
+                    id={`${cfg.restartScript.eid}-delay`}
+                    type="number"
+                    min={0}
+                    step={100}
+                    value={restartScriptState.delayMs}
+                    onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                        const parsed = Number.isFinite(event.target.valueAsNumber)
+                            ? event.target.valueAsNumber
+                            : Number(event.target.value);
+                        const sanitized = Number.isFinite(parsed) ? Math.max(0, Math.round(parsed)) : 0;
+                        updateRestartScript({ delayMs: sanitized });
+                    }}
+                    disabled={pageCtx.isReadOnly}
+                />
+                <SettingItemDesc>
+                    How long txAdmin waits (in milliseconds) after the players are kicked before starting the batch file.
+                </SettingItemDesc>
+            </SettingItem>
 
             <SettingItem label="CFG File Path" htmlFor={cfg.cfgPath.eid} showIf={showAdvanced} required>
                 <Input

@@ -1,4 +1,6 @@
 import { spawn } from 'node:child_process';
+import { constants as fsConstants } from 'node:fs';
+import fsp from 'node:fs/promises';
 import { setTimeout as sleep } from 'node:timers/promises';
 import StreamValues from 'stream-json/streamers/StreamValues';
 import { customAlphabet } from 'nanoid/non-secure';
@@ -12,7 +14,7 @@ import { childProcessEventBlackHole, getFxSpawnVariables, getMutableConvars, isV
 import ProcessManager, { ChildProcessStateInfo } from './ProcessManager';
 import handleFd3Messages from './handleFd3Messages';
 import ConsoleLineEnum from '@modules/Logger/FXServerLogger/ConsoleLineEnum';
-import { txHostConfig } from '@core/globalData';
+import { txHostConfig, txEnv } from '@core/globalData';
 import path from 'node:path';
 const console = consoleFactory('FxRunner');
 const genMutex = customAlphabet(dict49, 5);
@@ -27,7 +29,7 @@ const MIN_KILL_DELAY = 250;
  * a more detailed and better formatted object
  */
 export default class FxRunner {
-    static readonly configKeysWatched = [...mutableConvarConfigDependencies];
+    static readonly configKeysWatched = [...mutableConvarConfigDependencies, 'server.restartScript'];
 
     public readonly history: ChildProcessStateInfo[] = [];
     private proc: ProcessManager | null = null;
@@ -42,6 +44,9 @@ export default class FxRunner {
      */
     public handleConfigUpdate(updatedConfigs: UpdateConfigKeySet) {
         this.updateMutableConvars().catch(() => { });
+        if (updatedConfigs.hasMatch('server.restartScript')) {
+            this.syncRestartScriptConfig();
+        }
     }
 
 
@@ -220,6 +225,8 @@ export default class FxRunner {
         });
         txCore.logger.fxserver.logFxserverSpawn(this.proc.pid.toString());
 
+        this.syncRestartScriptConfig();
+
         //Setting up StdIO
         childProc.stdout.setEncoding('utf8');
         childProc.stdout.on('data',
@@ -246,6 +253,124 @@ export default class FxRunner {
 
         //FIXME: return a more detailed object
         return null;
+    }
+
+
+    private syncRestartScriptConfig() {
+        if (!this.proc?.isAlive) return;
+        const cfg = txConfig.server.restartScript;
+        if (!cfg) return;
+        this.sendEvent('restartScriptConfig', {
+            enabled: !!cfg.enabled,
+            scriptPath: cfg.scriptPath ?? '',
+            workingDirectory: cfg.workingDirectory ?? '',
+            args: cfg.args ?? '',
+            messagePattern: cfg.messagePattern ?? '',
+            delayMs: Number.isFinite(cfg.delayMs) ? cfg.delayMs : 0,
+        });
+    }
+
+
+    private maybeLaunchRestartScript(
+        shutdownMessage: string | undefined,
+        isRestarting: boolean,
+        reason?: string,
+    ) {
+        const cfg = txConfig.server.restartScript;
+        if (!cfg?.enabled) return;
+        if (!txEnv.isWindows) {
+            console.warn('Restart script is enabled but only supported on Windows hosts. Skipping execution.');
+            return;
+        }
+
+        const rawScriptPath = (cfg.scriptPath ?? '').trim();
+        if (!rawScriptPath.length) {
+            console.warn('Restart script is enabled but the batch file path is empty.');
+            return;
+        }
+
+        const normalizedScriptPath = path.normalize(rawScriptPath.replace(/^"+|"+$/g, ''));
+        if (!path.isAbsolute(normalizedScriptPath)) {
+            console.warn(`Restart script path must be absolute. Received: ${normalizedScriptPath}`);
+            return;
+        }
+
+        const pattern = (cfg.messagePattern ?? '').trim().toLowerCase();
+        if (pattern) {
+            const matchSources: string[] = [];
+            if (shutdownMessage) matchSources.push(shutdownMessage);
+            if (reason) matchSources.push(reason);
+            if (isRestarting) matchSources.push('restart');
+            const hasPatternMatch = matchSources.some((text) => text.toLowerCase().includes(pattern));
+            if (!hasPatternMatch) {
+                console.verbose.debug('Restart script skipped because the shutdown context did not match the configured pattern.');
+                return;
+            }
+        } else if (!isRestarting) {
+            console.verbose.debug('Restart script skipped: pattern is blank and this shutdown is not a restart.');
+            return;
+        }
+
+        const delayMs = Number.isFinite(cfg.delayMs) ? Math.max(0, cfg.delayMs) : 0;
+        const extraArgs = (cfg.args ?? '').trim();
+        const commandLine = this.buildRestartScriptCommand(normalizedScriptPath, extraArgs);
+
+        const rawCwd = (cfg.workingDirectory ?? '').trim();
+        let resolvedCwd: string | undefined;
+        if (rawCwd.length) {
+            const normalizedCwd = path.normalize(rawCwd.replace(/^"+|"+$/g, ''));
+            resolvedCwd = path.isAbsolute(normalizedCwd)
+                ? normalizedCwd
+                : (txConfig.server.dataPath
+                    ? path.normalize(path.resolve(txConfig.server.dataPath, normalizedCwd))
+                    : path.normalize(path.resolve(normalizedCwd)));
+        } else if (txConfig.server.dataPath) {
+            resolvedCwd = path.normalize(txConfig.server.dataPath);
+        }
+
+        const runScript = async () => {
+            try {
+                await fsp.access(normalizedScriptPath, fsConstants.F_OK);
+            } catch (error) {
+                console.warn(`Restart script not found: ${normalizedScriptPath}`);
+                return;
+            }
+
+            try {
+                const child = spawn('cmd.exe', ['/c', commandLine], {
+                    cwd: resolvedCwd,
+                    detached: true,
+                    stdio: 'ignore',
+                    windowsHide: true,
+                });
+                child.on('error', (error) => {
+                    console.error(`Failed to start restart script (${normalizedScriptPath}): ${(error as Error).message}`);
+                });
+                child.unref();
+                const triggerKind = isRestarting ? 'restart' : 'shutdown';
+                console.ok(`Launched restart script${delayMs ? ` after ${delayMs}ms` : ''} (${triggerKind}): ${normalizedScriptPath}`);
+            } catch (error) {
+                console.error(`Failed to launch restart script (${normalizedScriptPath}): ${(error as Error).message}`);
+            }
+        };
+
+        if (delayMs > 0) {
+            const timeout = setTimeout(() => {
+                void runScript();
+            }, delayMs);
+            timeout.unref?.();
+            console.verbose.debug(`Restart script scheduled to run in ${delayMs}ms.`);
+        } else {
+            void runScript();
+        }
+    }
+
+
+    private buildRestartScriptCommand(scriptPath: string, extraArgs: string) {
+        const needsQuotes = /\s/.test(scriptPath);
+        const quotedPath = needsQuotes ? `"${scriptPath}"` : scriptPath;
+        const trimmedArgs = extraArgs.trim();
+        return trimmedArgs.length ? `${quotedPath} ${trimmedArgs}` : quotedPath;
     }
 
 
@@ -308,6 +433,7 @@ export default class FxRunner {
             servername: txConfig.general.serverName,
             reason: reasonString,
         };
+        let shutdownAnnouncement: string | undefined;
 
         //Prevent concurrent kill request
         if (this.isAwaitingShutdownNoticeDelay) {
@@ -321,10 +447,11 @@ export default class FxRunner {
         try {
             //If the process is alive, send warnings event and await the delay
             if (this.proc.isAlive) {
+                shutdownAnnouncement = txCore.translator.t(`server_actions.${messageType}`, tOptions);
                 this.sendEvent('serverShuttingDown', {
                     delay: txConfig.server.shutdownNoticeDelayMs,
                     author: typeof author === 'string' ? author : 'txAdmin',
-                    message: txCore.translator.t(`server_actions.${messageType}`, tOptions),
+                    message: shutdownAnnouncement,
                 });
                 this.isAwaitingShutdownNoticeDelay = true;
                 await sleep(shutdownDelay);
@@ -336,6 +463,8 @@ export default class FxRunner {
             const debugInfo = this.proc.stateInfo;
             this.history.push(debugInfo);
             this.proc = null;
+
+            this.maybeLaunchRestartScript(shutdownAnnouncement, isRestarting, reasonString);
 
             //Cleanup
             txCore.fxScheduler.handleServerClose();

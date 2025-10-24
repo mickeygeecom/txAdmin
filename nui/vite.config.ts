@@ -37,7 +37,10 @@ const baseConfig = {
     clearScreen: false,
     plugins: [
         tsconfigPaths({
-            projects: ['./', '../shared']
+            projects: [
+                path.resolve(__dirname, './tsconfig.json'),
+                path.resolve(__dirname, '../shared/tsconfig.json'),
+            ],
         }),
         react(),
         visualizer({
@@ -47,6 +50,13 @@ const baseConfig = {
             filename: '../.reports/nui_bundle.html',
         }),
     ] as PluginOption[], //i gave up
+    resolve: {
+        alias: {
+            '@nui': path.resolve(__dirname, '.'),
+            '@shared': path.resolve(__dirname, '../shared'),
+            '@locale': path.resolve(__dirname, '../locale'),
+        },
+    },
 } satisfies UserConfig;
 
 // https://vitejs.dev/config/
